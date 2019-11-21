@@ -1,7 +1,7 @@
 from torch import nn
 
 
-class ConvBlock(nn.module):
+class ConvBlock(nn.Module):
 
     def __init__(self, in_dim=3, out_dim=3, kernel=5):
         super(ConvBlock, self).__init__()

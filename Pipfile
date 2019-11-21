@@ -12,6 +12,8 @@ torchvision = "*"
 tqdm = "*"
 torchsummary = "*"
 tensorboardx = "*"
+pillow = "*"
+rawpy = "*"
 
 [requires]
 python_version = "3.7"

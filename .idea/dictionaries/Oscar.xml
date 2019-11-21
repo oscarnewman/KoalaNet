@@ -4,6 +4,7 @@
       <w>argparse</w>
       <w>convolutional</w>
       <w>cuda</w>
+      <w>deconv</w>
     </words>
   </dictionary>
 </component>
