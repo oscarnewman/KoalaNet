@@ -8,7 +8,7 @@ import math
 
 class ConvBlock(nn.Module):
 
-    def __init__(self, in_dim=3, out_dim=3, kernel=3, pool=True):
+    def __init__(self, in_dim=3, out_dim=3, kernel=4, pool=True):
         super(ConvBlock, self).__init__()
 
         block = [
@@ -26,7 +26,7 @@ class ConvBlock(nn.Module):
 
 class DeconvBlock(nn.Module):
 
-    def __init__(self, in_dim=3, out_dim=3, kernel=3):
+    def __init__(self, in_dim=3, out_dim=3, kernel=4):
         super(DeconvBlock, self).__init__()
 
         self.transpose = nn.ConvTranspose2d(in_dim, out_dim, kernel, stride=2, padding=kernel // 2)
@@ -114,8 +114,7 @@ class Network(nn.Module):
 
 
 def main():
-    image: torch.Tensor = transforms.ToTensor()(Image.open('mtn2.jpg'))
-    image = image.cuda()
+    image: torch.Tensor = transforms.ToTensor()(Image.open('mtn.jpg'))
 
     model = Network()
     use_cuda = torch.cuda.is_available()
@@ -123,12 +122,11 @@ def main():
         model = model.cuda()
         image = image.cuda()
 
-    # test = torch.rand((1, 3, 512, 512))
-    # transforms.ToPILImage()(test[0]).show()
+    test = torch.rand((1, 3, 512, 512))
+    transforms.ToPILImage()(test[0]).show()
 
     with torch.no_grad():
         output = model(image.reshape(1, *image.shape))[0]
-        # output = model(test)[0]
 
     output = output / torch.max(output)
 

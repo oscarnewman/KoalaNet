@@ -14,6 +14,7 @@ torchsummary = "*"
 tensorboardx = "*"
 pillow = "*"
 rawpy = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.7"
