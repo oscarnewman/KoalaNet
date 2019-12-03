@@ -7,8 +7,9 @@ import numpy as np
 import torch
 from prefetch_generator import BackgroundGenerator
 from torch.utils import data
-from torchvision import transforms
+from torchvision import transforms, utils
 from tqdm import tqdm
+from PIL import Image
 
 from dataloader import RawImageDataset
 from networks import KoalaNet
@@ -38,21 +39,25 @@ if __name__ == '__main__':
 
     # add code for datasets (we always use train and validation/ test set)
     data_transforms = transforms.Compose([
+        # transforms.ToPILImage()
+
         # transforms.Resize((opt.img_size, opt.img_size)),
         # transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
+        # transforms.ToTensor(),
         # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     train_dataset = RawImageDataset(manifest_csv=os.path.join(args.trainwith, 'manifest.csv'),
                                     root_dir=args.trainwith,
+                                    crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=100, shuffle=True)
+    train_data_loader = data.DataLoader(train_dataset, batch_size=1, shuffle=True)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
+                                   crop=None
                                    )
-    test_data_loader = data.DataLoader(test_dataset, batch_size=100, shuffle=True)
+    test_data_loader = data.DataLoader(test_dataset, batch_size=1, shuffle=True)
 
     # instantiate network (which has been imported from *networks.py*)
     net = KoalaNet()
@@ -64,6 +69,7 @@ if __name__ == '__main__':
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         net = net.cuda()
+        print("USING CUDA")
 
     # create optimizers
     optimizer = torch.optim.Adam(net.parameters(), lr=args.lr)
@@ -110,7 +116,18 @@ if __name__ == '__main__':
             # forward and backward pass
             optimizer.zero_grad()
 
-            output = net(dark_img)
+            output: torch.Tensor = net(dark_img)
+            # output = output.clamp(0, 255)
+            # print(output[0])
+            im: Image = transforms.ToPILImage()(output[0])
+            im.save(f'out/train/train_{epoch}_{i}.png')
+            ref: Image = transforms.ToPILImage()(light_img[0])
+            ref.save(f'out/train/train_{epoch}_{i}_ref.png')
+            # out = torch.from_numpy(np.array([im, ref]))
+            # utils.save_image(out, f'out/train/train_{epoch}_{i}.png')
+            # utils.save_image(output[0], f'out/train/train_{epoch}_{i}.png')
+            # print(output.shape)
+            # print(light_img.shape)
             loss = criterion_L1(light_img, output)
 
             loss.backward()
@@ -122,21 +139,26 @@ if __name__ == '__main__':
             #
             # compute computation time and *compute_efficiency*
             process_time = start_time - time.time() - prepare_time
-            pbar.set_description("Compute efficiency: {:.2f}, epoch: {}/{}:".format(
-                process_time / (process_time + prepare_time), epoch, args.epochs))
+            pbar.set_description("Compute efficiency: {:.2f}, Loss: {:.3f}, epoch: {}/{}:".format(
+                process_time / (process_time + prepare_time), loss, epoch, args.epochs))
             start_time = time.time()
 
         # maybe do a test pass every x epochs
-        # x = 1
-        # if epoch % x == x - 1:
-        #     bring models to evaluation mode
-        #     net.eval()
-        #     ...
-    #         # do some tests
-    #         pbar = tqdm(enumerate(BackgroundGenerator(test_data_loader, ...)),
-    #                     total=len(test_data_loader))
-    #         for i, data in pbar:
-    #             ...
-    #
-    #         # save checkpoint if needed
-    #         ...
+        x = -1
+        if epoch % x == x - 1:
+            # bring models to evaluation mode
+            net.eval()
+            # do some tests
+            pbar = tqdm(enumerate(BackgroundGenerator(test_data_loader)),
+                        total=len(test_data_loader))
+            pbar.set_description("Saving test outputs")
+            for i, data in pbar:
+                output = net(data['dark'])
+                im = transforms.ToPILImage()(output[0])
+                im.save(f'out/test/test_{epoch}_{i}.png')
+
+
+
+
+
+

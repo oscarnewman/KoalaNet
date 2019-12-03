@@ -53,17 +53,17 @@ class DownsampleBlock(nn.Module):
 
     def forward(self, x) -> [torch.Tensor]:
         conv32 = self.conv32(x)
-        print(conv32.shape)
+        # print(conv32.shape)
         conv64 = self.conv64(conv32)
-        print(conv64.shape)
+        # print(conv64.shape)
         conv128 = self.conv128(conv64)
-        print(conv128.shape)
+        # print(conv128.shape)
         conv256 = self.conv256(conv128)
-        print(conv256.shape)
+        # print(conv256.shape)
         conv512 = self.conv512(conv256)
-        print(conv512.shape)
+        # print(conv512.shape)
 
-        return [conv512, conv256, conv128, conv64, conv32]
+        return [conv512, conv256, conv128, conv64, conv32, x]
 
 
 class UpsampleBlock(nn.Module):
@@ -74,20 +74,21 @@ class UpsampleBlock(nn.Module):
         self.conv256 = DeconvBlock(in_dim=256, out_dim=128)
         self.conv128 = DeconvBlock(in_dim=128, out_dim=64)
         self.conv64 = DeconvBlock(in_dim=64, out_dim=32)
+        self.final_scale = nn.ConvTranspose2d(32, 32, 3, stride=4, padding=1)
 
     def forward(self, samples):
-        u512, u256, u128, u64, u32 = samples
+        u512, u256, u128, u64, u32, orig = samples
 
-        print("UPSAMPLING")
-        print(u512.shape)
+        # print("UPSAMPLING")
         x = self.conv512(u512, add=u256)
-        print(x.shape)
+        # print(x.shape)
         x = self.conv256(x, add=u128)
-        print(x.shape)
+        # print(x.shape)
         x = self.conv128(x, add=u64)
-        print(x.shape)
+        # print(x.shape)
         x = self.conv64(x, add=u32)
-        print(x.shape)
+        # print(x.shape)
+        x = self.final_scale(x, output_size=[orig.shape[2] * 2, orig.shape[3] * 2])
 
         return x
 
@@ -100,10 +101,25 @@ class KoalaNet(nn.Module):
         layers = [
             DownsampleBlock(),
             UpsampleBlock(),
-            nn.Conv2d(32, 12, kernel_size=3, stride=1, padding=1)
+            nn.Conv2d(32, 3, kernel_size=3, stride=1, padding=1),
+            # nn.Tanh()
         ]
 
         self.net = nn.Sequential(*layers)
 
     def forward(self, images):
-        return self.net(images)
+        output = self.net(images)
+        # return output
+        # print(output.shape)
+        return output
+
+        q1 = output[:, 0:3, :, :]
+        q2 = output[:, 3:6, :, :]
+        q3 = output[:, 6:9, :, :]
+        q4 = output[:, 9:12, :, :]
+
+        top = torch.cat((q1, q2), 2)
+        bottom = torch.cat((q3, q4), 2)
+        return torch.cat((top, bottom), 3)
+
+        # return output.view(-1, 3, output.shape[2] * 2, output.shape[3] * 2)
