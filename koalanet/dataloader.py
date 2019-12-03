@@ -1,8 +1,25 @@
-import pandas as pd
-from torch.utils.data import Dataset
-import torch
 import os
+
+import pandas as pd
+import numpy as np
 import rawpy
+import torch
+from torch.utils.data import Dataset
+
+
+def unpack_raw(image: np.ndarray) -> torch.Tensor:
+    im = np.expand_dims(image, axis=2)
+    img_shape = im.shape
+    H = img_shape[0]
+    W = img_shape[1]
+
+    out: torch.Tensor = torch.from_numpy(
+        np.concatenate((im[0:H:2, 0:W:2, :],
+                        im[0:H:2, 1:W:2, :],
+                        im[1:H:2, 1:W:2, :],
+                        im[1:H:2, 0:W:2, :]), axis=2))
+
+    return out.permute([2, 0, 1])
 
 
 class RawImageDataset(Dataset):
@@ -23,7 +40,12 @@ class RawImageDataset(Dataset):
         dark_raw_name = os.path.join(self.root_dir, self.manifest.iloc[idx, 0])
         light_raw_name = os.path.join(self.root_dir, self.manifest.iloc[idx, 1])
 
-        dark_img = rawpy.imread(dark_raw_name).raw_image_visible()
-        light_img = rawpy.imread(light_raw_name).raw_image_visible()
+        dark_img = unpack_raw(rawpy.imread(dark_raw_name).raw_image_visible.astype(np.float32))
+        light_img = rawpy.imread(light_raw_name).postprocess()
 
+        sample = {'dark': dark_img, 'light': light_img}
 
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample

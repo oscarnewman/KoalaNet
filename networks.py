@@ -16,10 +16,10 @@ class ConvBlock(nn.Module):
         return self.block(x)
 
 
-class ToyNet(nn.Module):
+class KoalaNet(nn.Module):
 
     def __init__(self):
-        super(ToyNet, self).__init__()
+        super(KoalaNet, self).__init__()
 
         input_channels = 3
         hidden_channels = 20

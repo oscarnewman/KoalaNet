@@ -1,9 +1,5 @@
 import torch
 from torch import nn
-from PIL import Image
-from torchsummary import summary
-from torchvision import transforms
-import math
 
 
 class ConvBlock(nn.Module):
@@ -49,7 +45,7 @@ class DownsampleBlock(nn.Module):
     def __init__(self):
         super(DownsampleBlock, self).__init__()
 
-        self.conv32 = ConvBlock(in_dim=3, out_dim=32)
+        self.conv32 = ConvBlock(in_dim=4, out_dim=32)
         self.conv64 = ConvBlock(in_dim=32, out_dim=64)
         self.conv128 = ConvBlock(in_dim=64, out_dim=128)
         self.conv256 = ConvBlock(in_dim=128, out_dim=256)
@@ -96,43 +92,18 @@ class UpsampleBlock(nn.Module):
         return x
 
 
-class Network(nn.Module):
+class KoalaNet(nn.Module):
 
     def __init__(self):
-        super(Network, self).__init__()
+        super(KoalaNet, self).__init__()
 
         layers = [
             DownsampleBlock(),
             UpsampleBlock(),
-            nn.Conv2d(32, 3, kernel_size=3, stride=1, padding=1)
+            nn.Conv2d(32, 12, kernel_size=3, stride=1, padding=1)
         ]
 
         self.net = nn.Sequential(*layers)
 
     def forward(self, images):
         return self.net(images)
-
-
-def main():
-    image: torch.Tensor = transforms.ToTensor()(Image.open('mtn.jpg'))
-
-    model = Network()
-    # use_cuda = torch.cuda.is_available()
-    # if use_cuda:
-    #     model = model.cuda()
-    #     image = image.cuda()
-
-    test = torch.rand((1, 4, 512, 512))
-    # transforms.ToPILImage()(test[0]).show()
-
-    with torch.no_grad():
-        output = model(image.reshape(1, *image.shape))[0]
-
-    # output = output / torch.max(output)
-
-    # image_out: Image = transforms.ToPILImage()(output)
-    # image_out.show()
-
-
-if __name__ == '__main__':
-    main()

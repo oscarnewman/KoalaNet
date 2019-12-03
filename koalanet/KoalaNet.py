@@ -1,0 +1,142 @@
+# import statements
+import argparse
+import os
+import time
+
+import numpy as np
+import torch
+from prefetch_generator import BackgroundGenerator
+from torch.utils import data
+from torchvision import transforms
+from tqdm import tqdm
+
+from dataloader import RawImageDataset
+from networks import KoalaNet
+
+# set flags / seeds
+torch.backends.cudnn.benchmark = True
+np.random.seed(1)
+torch.manual_seed(1)
+torch.cuda.manual_seed(1)
+
+# Start with main code
+if __name__ == '__main__':
+    # argparse for additional flags for experiment
+    parser = argparse.ArgumentParser(
+        description="Train a fully convolutional network to brighten under-exposed raw images"
+    )
+
+    parser.add_argument("--testwith", type=str, dest='testwith', default="data/test",
+                        help="The dir for the test data")
+    parser.add_argument("--trainwith", type=str, dest='trainwith', default="data/test",
+                        help="The dir for the train data")
+
+    parser.add_argument('-A', '--lr', type=float, default=0.001, help="The learning rate")
+    parser.add_argument('-E', '--epochs', type=int, default=5, help="num epochs")
+
+    args = parser.parse_args()
+
+    # add code for datasets (we always use train and validation/ test set)
+    data_transforms = transforms.Compose([
+        # transforms.Resize((opt.img_size, opt.img_size)),
+        # transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    train_dataset = RawImageDataset(manifest_csv=os.path.join(args.trainwith, 'manifest.csv'),
+                                    root_dir=args.trainwith,
+                                    )
+    train_data_loader = data.DataLoader(train_dataset, batch_size=100, shuffle=True)
+
+    test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
+                                   root_dir=args.testwith,
+                                   )
+    test_data_loader = data.DataLoader(test_dataset, batch_size=100, shuffle=True)
+
+    # instantiate network (which has been imported from *networks.py*)
+    net = KoalaNet()
+
+    # create losses (criterion in pytorch)
+    criterion_L1 = torch.nn.L1Loss()
+
+    # if running on GPU and we want to use cuda move model there
+    use_cuda = torch.cuda.is_available()
+    if use_cuda:
+        net = net.cuda()
+
+    # create optimizers
+    optimizer = torch.optim.Adam(net.parameters(), lr=args.lr)
+
+    # load checkpoint if needed/ wanted
+    start_n_iter = 0
+    start_epoch = 0
+    # if opt.resume:
+    # ckpt = load_checkpoint(opt.path_to_checkpoint)  # custom method for loading last checkpoint
+    # net.load_state_dict(ckpt['net'])
+    # start_epoch = ckpt['epoch']
+    # start_n_iter = ckpt['n_iter']
+    # optim.load_state_dict(ckpt['optim'])
+    # print("last checkpoint restored")
+    # ...
+
+    # typically we use tensorboardX to keep track of experiments
+    # writer = SummaryWriter(...)
+
+    # now we start the main loop
+    n_iter = start_n_iter
+    for epoch in range(start_epoch, args.epochs):
+        # set models to train mode
+        net.train()
+
+        # use prefetch_generator and tqdm for iterating through data
+        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader)),
+                    total=len(train_data_loader))
+        start_time = time.time()
+
+        # for loop going through dataset
+        for i, data in pbar:
+            # data preparation
+            light_img = data['light']
+            dark_img = data['dark']
+            if use_cuda:
+                light_img = light_img.cuda()
+                dark_img = dark_img.cuda()
+
+            # It's very good practice to keep track of preparation time and
+            # computation time using tqdm to find any issues in your dataloader
+            prepare_time = start_time - time.time()
+
+            # forward and backward pass
+            optimizer.zero_grad()
+
+            output = net(dark_img)
+            loss = criterion_L1(light_img, output)
+
+            loss.backward()
+            optimizer.step()
+
+            #         # udpate tensorboardX
+            #         writer.add_scalar(..., n_iter)
+            #         ...
+            #
+            # compute computation time and *compute_efficiency*
+            process_time = start_time - time.time() - prepare_time
+            pbar.set_description("Compute efficiency: {:.2f}, epoch: {}/{}:".format(
+                process_time / (process_time + prepare_time), epoch, args.epochs))
+            start_time = time.time()
+
+        # maybe do a test pass every x epochs
+        # x = 1
+        # if epoch % x == x - 1:
+        #     bring models to evaluation mode
+        #     net.eval()
+        #     ...
+    #         # do some tests
+    #         pbar = tqdm(enumerate(BackgroundGenerator(test_data_loader, ...)),
+    #                     total=len(test_data_loader))
+    #         for i, data in pbar:
+    #             ...
+    #
+    #         # save checkpoint if needed
+    #         ...
