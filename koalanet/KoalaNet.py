@@ -35,6 +35,7 @@ if __name__ == '__main__':
     parser.add_argument('-A', '--lr', type=float, default=0.001, help="The learning rate")
     parser.add_argument('-E', '--epochs', type=int, default=5, help="num epochs")
     parser.add_argument('-B', '--batch', type=int, default=2, help='batch size')
+    parser.add_argument('--resume', type=str, default=None, help='batch size')
 
     args = parser.parse_args()
 
@@ -79,14 +80,12 @@ if __name__ == '__main__':
     # load checkpoint if needed/ wanted
     start_n_iter = 0
     start_epoch = 0
-    # if opt.resume:
-    # ckpt = load_checkpoint(opt.path_to_checkpoint)  # custom method for loading last checkpoint
-    # net.load_state_dict(ckpt['net'])
-    # start_epoch = ckpt['epoch']
-    # start_n_iter = ckpt['n_iter']
-    # optim.load_state_dict(ckpt['optim'])
-    # print("last checkpoint restored")
-    # ...
+    if args.resume is not None:
+        ckpt = torch.load(args.resume)  # custom method for loading last checkpoint
+        net.load_state_dict(ckpt['net'])
+        start_epoch = ckpt['epoch']
+        optimizer.load_state_dict(ckpt['optim'])
+        print("last checkpoint restored")
 
     # typically we use tensorboardX to keep track of experiments
     # writer = SummaryWriter(...)
@@ -136,7 +135,7 @@ if __name__ == '__main__':
             # utils.save_image(output[0], f'out/train/train_{epoch}_{i}.png')
             # print(output.shape)
             # print(light_img.shape)
-            loss = criterion_L1(light_img.float(), output.float())
+            loss = criterion_L2(light_img.float(), output.float())
 
             loss.backward()
             optimizer.step()
@@ -162,6 +161,11 @@ if __name__ == '__main__':
 
             start_time = time.time()
 
+        torch.save({
+            'epoch': epoch,
+            'net': net.state_dict(),
+            'optim': optimizer.state_dict(),
+        }, f'checkpoint/saved_epoch_{epoch}.ckpt')
         # maybe do a test pass every x epochs
         x = -1
         if epoch % x == x - 1:
