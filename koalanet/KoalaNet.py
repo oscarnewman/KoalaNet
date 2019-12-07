@@ -132,7 +132,7 @@ if __name__ == '__main__':
             # utils.save_image(output[0], f'out/train/train_{epoch}_{i}.png')
             # print(output.shape)
             # print(light_img.shape)
-            loss = criterion_L2(light_img, output)
+            loss = criterion_L1(light_img, output)
 
             loss.backward()
             optimizer.step()
