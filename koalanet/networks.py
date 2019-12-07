@@ -8,12 +8,12 @@ class ConvBlock(nn.Module):
 
         block = [
             nn.Conv2d(in_dim, out_dim, kernel, stride=1, padding=kernel // 2),
-            nn.BatchNorm2d(out_dim),
+            # nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
             nn.Conv2d(
                 out_dim, out_dim, kernel, stride=2 if pool else 1, padding=kernel // 2
             ),
-            nn.BatchNorm2d(out_dim),
+            # nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
         ]
 
@@ -31,12 +31,12 @@ class DeconvBlock(nn.Module):
             in_dim, out_dim, kernel, stride=2, padding=kernel // 2
         )
         block = [
-            nn.BatchNorm2d(out_dim),
+            # nn.BatchNorm2d(out_dim),
             nn.Conv2d(out_dim, out_dim, kernel, stride=1, padding=kernel // 2),
-            nn.BatchNorm2d(out_dim),
+            # nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
             nn.Conv2d(out_dim, out_dim, kernel, stride=1, padding=kernel // 2),
-            nn.BatchNorm2d(out_dim),
+            # nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
         ]
 
