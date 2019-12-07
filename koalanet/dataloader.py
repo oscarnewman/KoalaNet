@@ -1,3 +1,4 @@
+import math
 import os
 
 import numpy as np
@@ -10,7 +11,6 @@ from torch.utils.data import Dataset
 def unpack_raw(image: np.ndarray) -> torch.Tensor:
     im = np.expand_dims(image, axis=2)
     im = np.maximum(im - 512, 0) / (16383 - 512)
-    im = im * 300
     img_shape = im.shape
     H = img_shape[0]
     W = img_shape[1]
@@ -22,6 +22,17 @@ def unpack_raw(image: np.ndarray) -> torch.Tensor:
                         im[1:H:2, 0:W:2, :]), axis=2))
 
     return out.permute([2, 0, 1])
+
+
+def get_exposure(img: str) -> float:
+    # remove ext
+    name = ".".join(img.split('.')[:-1])
+    exp = name.split('_')[2][:-1]
+    return float(exp)
+
+
+def get_exposure_ratio(dark_img_name: str, light_img_name: str) -> int:
+    return math.ceil(get_exposure(light_img_name) / get_exposure(dark_img_name))
 
 
 def get_crop(w, h, size):
@@ -50,8 +61,13 @@ class RawImageDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        dark_raw_name = os.path.join(self.root_dir, self.manifest.iloc[idx, 0])
-        light_raw_name = os.path.join(self.root_dir, self.manifest.iloc[idx, 1])
+        dark_fname = self.manifest.iloc[idx, 0]
+        light_fname = self.manifest.iloc[idx, 1]
+
+        ratio = get_exposure_ratio(dark_fname, light_fname)
+
+        dark_raw_name = os.path.join(self.root_dir, dark_fname)
+        light_raw_name = os.path.join(self.root_dir, light_fname)
 
         dark_raw = rawpy.imread(dark_raw_name)
         light_raw = rawpy.imread(light_raw_name)
@@ -67,7 +83,7 @@ class RawImageDataset(Dataset):
             light_rgb = light_rgb[:, x0:x1, y0:y1]
             dark_rgb = dark_rgb[:, x0:x1, y0:y1]
 
-        dark_img = unpack_raw(dark_bayer)
+        dark_img = unpack_raw(dark_bayer) * ratio
         light_img = light_rgb
 
         # print(dark_img.shape)

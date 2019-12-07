@@ -5,10 +5,9 @@ import time
 
 import numpy as np
 import torch
-from PIL import Image
 from prefetch_generator import BackgroundGenerator
 from torch.utils import data
-from torchvision import transforms
+from torchvision import transforms, utils
 from tqdm import tqdm
 
 from dataloader import RawImageDataset
@@ -99,7 +98,7 @@ if __name__ == '__main__':
         net.train()
 
         # use prefetch_generator and tqdm for iterating through data
-        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=32)),
+        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=4)),
                     total=len(train_data_loader))
         start_time = time.time()
 
@@ -121,8 +120,9 @@ if __name__ == '__main__':
             # forward and backward pass
             optimizer.zero_grad()
 
-            output: torch.Tensor = torch.add(net(dark_img), dark_rgb)
+            output = net(dark_img)
             # output = output.clamp(0, 255)
+            output: torch.Tensor = torch.add(net(dark_img), dark_rgb)
             # print(output[0])
 
             # out = torch.from_numpy(np.array([im, ref]))
@@ -141,13 +141,16 @@ if __name__ == '__main__':
             #
             # compute computation time and *compute_efficiency*
             process_time = start_time - time.time() - prepare_time
-            pbar.set_description("Compute efficiency: {:.2f}, Loss: {:.3f}, epoch: {}/{}:".format(
+            pbar.set_description("C/E: {:.2f}, Loss: {:.3f}, Epoch: {}/{}:".format(
                 process_time / (process_time + prepare_time), loss, epoch, args.epochs))
 
-            im: Image = transforms.ToPILImage()(output[0].cpu())
-            im.save(f'out/train/train_{epoch}_{i}.png')
-            ref: Image = transforms.ToPILImage()(light_img[0].cpu())
-            ref.save(f'out/train/train_{epoch}_{i}_ref.png')
+            if i % 10 == 0:
+                utils.save_image(output, f'out/train/train_{epoch}_{i}.png')
+
+            # im: Image = transforms.ToPILImage()(output[0].cpu())
+            # im.save(f'out/train/train_{epoch}_{i}.png')
+            # ref: Image = transforms.ToPILImage()(light_img[0].cpu())
+            # ref.save(f'out/train/train_{epoch}_{i}_ref.png')
 
             start_time = time.time()
 
