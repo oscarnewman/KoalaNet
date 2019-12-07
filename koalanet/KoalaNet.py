@@ -106,9 +106,11 @@ if __name__ == '__main__':
             # data preparation
             light_img = data['light']
             dark_img = data['dark']
+            dark_rgb = data['dark_rgb']
             if use_cuda:
                 light_img = light_img.cuda()
                 dark_img = dark_img.cuda()
+                dark_rgb = dark_rgb.cuda()
 
             # It's very good practice to keep track of preparation time and
             # computation time using tqdm to find any issues in your dataloader
@@ -117,7 +119,7 @@ if __name__ == '__main__':
             # forward and backward pass
             optimizer.zero_grad()
 
-            output: torch.Tensor = torch.add(net(dark_img), data['dark_rgb'])
+            output: torch.Tensor = torch.add(net(dark_img), dark_rgb)
             # output = output.clamp(0, 255)
             # print(output[0])
             im: Image = transforms.ToPILImage()(output[0])
