@@ -35,6 +35,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-A', '--lr', type=float, default=0.001, help="The learning rate")
     parser.add_argument('-E', '--epochs', type=int, default=5, help="num epochs")
+    parser.add_argument('-B', '--batch', type=int, default=2, help='batch size')
 
     args = parser.parse_args()
 
@@ -52,13 +53,13 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=2, shuffle=True)
+    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
                                    crop=None
                                    )
-    test_data_loader = data.DataLoader(test_dataset, batch_size=2, shuffle=True)
+    test_data_loader = data.DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
 
     # instantiate network (which has been imported from *networks.py*)
     net = KoalaNet()
@@ -123,10 +124,7 @@ if __name__ == '__main__':
             output: torch.Tensor = torch.add(net(dark_img), dark_rgb)
             # output = output.clamp(0, 255)
             # print(output[0])
-            im: Image = transforms.ToPILImage()(output[0].cpu())
-            im.save(f'out/train/train_{epoch}_{i}.png')
-            ref: Image = transforms.ToPILImage()(light_img[0].cpu())
-            ref.save(f'out/train/train_{epoch}_{i}_ref.png')
+
             # out = torch.from_numpy(np.array([im, ref]))
             # utils.save_image(out, f'out/train/train_{epoch}_{i}.png')
             # utils.save_image(output[0], f'out/train/train_{epoch}_{i}.png')
@@ -145,6 +143,12 @@ if __name__ == '__main__':
             process_time = start_time - time.time() - prepare_time
             pbar.set_description("Compute efficiency: {:.2f}, Loss: {:.3f}, epoch: {}/{}:".format(
                 process_time / (process_time + prepare_time), loss, epoch, args.epochs))
+
+            im: Image = transforms.ToPILImage()(output[0].cpu())
+            im.save(f'out/train/train_{epoch}_{i}.png')
+            ref: Image = transforms.ToPILImage()(light_img[0].cpu())
+            ref.save(f'out/train/train_{epoch}_{i}_ref.png')
+
             start_time = time.time()
 
         # maybe do a test pass every x epochs
