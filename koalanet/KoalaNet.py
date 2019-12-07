@@ -57,9 +57,9 @@ if __name__ == '__main__':
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
-                                   crop=None
+                                   crop=512
                                    )
-    test_data_loader = data.DataLoader(test_dataset, batch_size=1, shuffle=True)
+    test_data_loader = data.DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
 
     # instantiate network (which has been imported from *networks.py*)
     net = KoalaNet()
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     if args.resume is not None:
         ckpt = torch.load(args.resume)  # custom method for loading last checkpoint
         net.load_state_dict(ckpt['net'])
-        start_epoch = ckpt['epoch']
+        start_epoch = ckpt['epoch'] + 1
         optimizer.load_state_dict(ckpt['optim'])
         print("last checkpoint restored")
 
