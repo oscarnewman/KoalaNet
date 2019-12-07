@@ -5,6 +5,7 @@ import time
 
 import numpy as np
 import torch
+from PIL import Image
 from prefetch_generator import BackgroundGenerator
 from torch.utils import data
 from torchvision import transforms, utils
@@ -50,7 +51,7 @@ if __name__ == '__main__':
 
     train_dataset = RawImageDataset(manifest_csv=os.path.join(args.trainwith, 'manifest.csv'),
                                     root_dir=args.trainwith,
-                                    crop=512
+                                    crop=None
                                     )
     train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
 
@@ -121,6 +122,8 @@ if __name__ == '__main__':
             optimizer.zero_grad()
 
             output = net(dark_img)
+
+            # output = (output / (torch.max(output) - torch.min(output))) * 255
             # output = output.clamp(0, 255)
             output: torch.Tensor = torch.add(output, dark_rgb)
             # print(output[0])
@@ -130,7 +133,7 @@ if __name__ == '__main__':
             # utils.save_image(output[0], f'out/train/train_{epoch}_{i}.png')
             # print(output.shape)
             # print(light_img.shape)
-            loss = criterion_L1(light_img, output)
+            loss = criterion_L1(output.float(), light_img.float())
 
             loss.backward()
             optimizer.step()
@@ -147,10 +150,10 @@ if __name__ == '__main__':
             if i % 10 == 0:
                 utils.save_image(output, f'out/train/train_{epoch}_{i}.png', scale_each=True)
 
-            # im: Image = transforms.ToPILImage()(output[0].cpu())
-            # im.save(f'out/train/train_{epoch}_{i}.png')
-            # ref: Image = transforms.ToPILImage()(light_img[0].cpu())
-            # ref.save(f'out/train/train_{epoch}_{i}_ref.png')
+            im: Image = transforms.ToPILImage()(output[0].cpu())
+            im.save(f'out/train/train_{epoch}_{i}_S.png')
+            ref: Image = transforms.ToPILImage()(light_img[0].cpu())
+            ref.save(f'out/train/train_{epoch}_{i}_ref.png')
 
             start_time = time.time()
 
