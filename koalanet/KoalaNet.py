@@ -52,7 +52,7 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=64, shuffle=True)
+    train_data_loader = data.DataLoader(train_dataset, batch_size=16, shuffle=True)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         net.train()
 
         # use prefetch_generator and tqdm for iterating through data
-        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader)),
+        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=32)),
                     total=len(train_data_loader))
         start_time = time.time()
 
