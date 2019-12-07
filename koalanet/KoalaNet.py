@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
             output = net(dark_img)
             # output = output.clamp(0, 255)
-            output: torch.Tensor = torch.add(net(dark_img), dark_rgb)
+            output: torch.Tensor = torch.add(output, dark_rgb)
             # print(output[0])
 
             # out = torch.from_numpy(np.array([im, ref]))

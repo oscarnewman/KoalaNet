@@ -53,6 +53,9 @@ class RawImageDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
         self.crop = crop
+        self.rgb_light = {}
+        self.rgb_dark = {}
+        self.bayer_dark = {}
 
     def __len__(self):
         return len(self.manifest)
@@ -63,6 +66,13 @@ class RawImageDataset(Dataset):
 
         dark_fname = self.manifest.iloc[idx, 0]
         light_fname = self.manifest.iloc[idx, 1]
+
+        if dark_fname in self.bayer_dark and dark_fname in self.rgb_dark and light_fname in self.rgb_light:
+            return {
+                'dark': self.bayer_dark[dark_fname],
+                'light': self.rgb_light[light_fname],
+                'dark_rgb': self.rgb_dark[dark_fname]
+            }
 
         ratio = get_exposure_ratio(dark_fname, light_fname)
 
@@ -88,6 +98,10 @@ class RawImageDataset(Dataset):
 
         # print(dark_img.shape)
         # print(light_img.shape)
+
+        self.bayer_dark[dark_fname] = dark_img
+        self.rgb_dark[dark_fname] = dark_rgb
+        self.rgb_light[light_fname] = light_rgb
 
         sample = {'dark': dark_img, 'light': light_img,
                   'dark_rgb': dark_rgb}
