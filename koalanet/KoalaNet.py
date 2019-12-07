@@ -163,7 +163,7 @@ if __name__ == '__main__':
             start_time = time.time()
 
         # maybe do a test pass every x epochs
-        x = 1
+        x = -1
         if epoch % x == x - 1:
             # bring models to evaluation mode
             net.eval()
