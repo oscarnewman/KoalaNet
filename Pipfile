@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 ipython = "*"
+pylint = "*"
+black = "*"
 
 [packages]
 numpy = "*"
@@ -19,4 +21,7 @@ pandas = "*"
 prefetch-generator = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true

@@ -5,11 +5,11 @@ import time
 
 import numpy as np
 import torch
+from PIL import Image
 from prefetch_generator import BackgroundGenerator
 from torch.utils import data
-from torchvision import transforms, utils
+from torchvision import transforms
 from tqdm import tqdm
-from PIL import Image
 
 from dataloader import RawImageDataset
 from networks import KoalaNet
@@ -64,6 +64,7 @@ if __name__ == '__main__':
 
     # create losses (criterion in pytorch)
     criterion_L1 = torch.nn.L1Loss()
+    criterion_L2 = torch.nn.MSELoss()
 
     # if running on GPU and we want to use cuda move model there
     use_cuda = torch.cuda.is_available()
@@ -116,7 +117,7 @@ if __name__ == '__main__':
             # forward and backward pass
             optimizer.zero_grad()
 
-            output: torch.Tensor = net(dark_img)
+            output: torch.Tensor = torch.add(net(dark_img), data['dark_rgb'])
             # output = output.clamp(0, 255)
             # print(output[0])
             im: Image = transforms.ToPILImage()(output[0])
@@ -128,7 +129,7 @@ if __name__ == '__main__':
             # utils.save_image(output[0], f'out/train/train_{epoch}_{i}.png')
             # print(output.shape)
             # print(light_img.shape)
-            loss = criterion_L1(light_img, output)
+            loss = criterion_L2(light_img, output)
 
             loss.backward()
             optimizer.step()
@@ -156,9 +157,3 @@ if __name__ == '__main__':
                 output = net(data['dark'])
                 im = transforms.ToPILImage()(output[0])
                 im.save(f'out/test/test_{epoch}_{i}.png')
-
-
-
-
-
-

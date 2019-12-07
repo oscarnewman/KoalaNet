@@ -1,7 +1,7 @@
 import os
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import rawpy
 import torch
 from torch.utils.data import Dataset
@@ -58,12 +58,14 @@ class RawImageDataset(Dataset):
 
         dark_bayer = dark_raw.raw_image_visible.astype(np.float32)
         light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
+        dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
 
         if self.crop:
             x0, x1, y0, y1 = get_crop(dark_bayer.shape[0], dark_bayer.shape[1], self.crop)
 
             dark_bayer = dark_bayer[x0:x1, y0:y1]
             light_rgb = light_rgb[:, x0:x1, y0:y1]
+            dark_rgb = dark_rgb[:, x0:x1, y0:y1]
 
         dark_img = unpack_raw(dark_bayer)
         light_img = light_rgb
@@ -71,7 +73,8 @@ class RawImageDataset(Dataset):
         # print(dark_img.shape)
         # print(light_img.shape)
 
-        sample = {'dark': dark_img, 'light': light_img}
+        sample = {'dark': dark_img, 'light': light_img,
+                  'dark_rgb': dark_rgb}
 
         if self.transform:
             sample = self.transform(sample)

@@ -3,14 +3,17 @@ from torch import nn
 
 
 class ConvBlock(nn.Module):
-
     def __init__(self, in_dim=3, out_dim=3, kernel=3, pool=True):
         super(ConvBlock, self).__init__()
 
         block = [
             nn.Conv2d(in_dim, out_dim, kernel, stride=1, padding=kernel // 2),
+            nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
-            nn.Conv2d(out_dim, out_dim, kernel, stride=2 if pool else 1, padding=kernel // 2),
+            nn.Conv2d(
+                out_dim, out_dim, kernel, stride=2 if pool else 1, padding=kernel // 2
+            ),
+            nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
         ]
 
@@ -21,15 +24,19 @@ class ConvBlock(nn.Module):
 
 
 class DeconvBlock(nn.Module):
-
     def __init__(self, in_dim=3, out_dim=3, kernel=3):
         super(DeconvBlock, self).__init__()
 
-        self.transpose = nn.ConvTranspose2d(in_dim, out_dim, kernel, stride=2, padding=kernel // 2)
+        self.transpose = nn.ConvTranspose2d(
+            in_dim, out_dim, kernel, stride=2, padding=kernel // 2
+        )
         block = [
+            nn.BatchNorm2d(out_dim),
             nn.Conv2d(out_dim, out_dim, kernel, stride=1, padding=kernel // 2),
+            nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
             nn.Conv2d(out_dim, out_dim, kernel, stride=1, padding=kernel // 2),
+            nn.BatchNorm2d(out_dim),
             nn.LeakyReLU(),
         ]
 
@@ -38,7 +45,8 @@ class DeconvBlock(nn.Module):
     def forward(self, x, add=None):
         x = self.transpose(x, output_size=add.shape if add is not None else None)
         out = self.block(x)
-        return out if add is None else torch.add(out, add)
+        out = out if add is None else torch.cat((out, x), dim=1)
+        return out
 
 
 class DownsampleBlock(nn.Module):
@@ -71,10 +79,10 @@ class UpsampleBlock(nn.Module):
         super(UpsampleBlock, self).__init__()
 
         self.conv512 = DeconvBlock(in_dim=512, out_dim=256)
-        self.conv256 = DeconvBlock(in_dim=256, out_dim=128)
-        self.conv128 = DeconvBlock(in_dim=128, out_dim=64)
-        self.conv64 = DeconvBlock(in_dim=64, out_dim=32)
-        self.final_scale = nn.ConvTranspose2d(32, 32, 3, stride=4, padding=1)
+        self.conv256 = DeconvBlock(in_dim=256 * 2, out_dim=128)
+        self.conv128 = DeconvBlock(in_dim=128 * 2, out_dim=64)
+        self.conv64 = DeconvBlock(in_dim=64 * 2, out_dim=32)
+        self.final_scale = nn.ConvTranspose2d(32 * 2, 32, 3, stride=4, padding=1)
 
     def forward(self, samples):
         u512, u256, u128, u64, u32, orig = samples
@@ -94,7 +102,6 @@ class UpsampleBlock(nn.Module):
 
 
 class KoalaNet(nn.Module):
-
     def __init__(self):
         super(KoalaNet, self).__init__()
 
@@ -102,7 +109,7 @@ class KoalaNet(nn.Module):
             DownsampleBlock(),
             UpsampleBlock(),
             nn.Conv2d(32, 3, kernel_size=3, stride=1, padding=1),
-            # nn.Tanh()
+            # nn.PixelShuffle(2)
         ]
 
         self.net = nn.Sequential(*layers)
@@ -112,14 +119,3 @@ class KoalaNet(nn.Module):
         # return output
         # print(output.shape)
         return output
-
-        q1 = output[:, 0:3, :, :]
-        q2 = output[:, 3:6, :, :]
-        q3 = output[:, 6:9, :, :]
-        q4 = output[:, 9:12, :, :]
-
-        top = torch.cat((q1, q2), 2)
-        bottom = torch.cat((q3, q4), 2)
-        return torch.cat((top, bottom), 3)
-
-        # return output.view(-1, 3, output.shape[2] * 2, output.shape[3] * 2)
