@@ -52,13 +52,13 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=16, shuffle=True)
+    train_data_loader = data.DataLoader(train_dataset, batch_size=2, shuffle=True)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
                                    crop=None
                                    )
-    test_data_loader = data.DataLoader(test_dataset, batch_size=1, shuffle=True)
+    test_data_loader = data.DataLoader(test_dataset, batch_size=2, shuffle=True)
 
     # instantiate network (which has been imported from *networks.py*)
     net = KoalaNet()
