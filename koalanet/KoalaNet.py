@@ -16,6 +16,7 @@ from networks import KoalaNet
 
 # set flags / seeds
 torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.fastest = True
 np.random.seed(1)
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
