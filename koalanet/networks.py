@@ -82,7 +82,8 @@ class UpsampleBlock(nn.Module):
         self.conv256 = DeconvBlock(in_dim=256 * 2, out_dim=128)
         self.conv128 = DeconvBlock(in_dim=128 * 2, out_dim=64)
         self.conv64 = DeconvBlock(in_dim=64 * 2, out_dim=32)
-        self.final_scale = nn.ConvTranspose2d(32 * 2, 32, 3, stride=4, padding=1)
+        self.conv32 = DeconvBlock(in_dim=32 * 2, out_dim=32)
+        self.final_scale = nn.ConvTranspose2d(32 * 2, 32, 3, stride=2, padding=1)
 
     def forward(self, samples):
         u512, u256, u128, u64, u32, orig = samples
@@ -96,7 +97,8 @@ class UpsampleBlock(nn.Module):
         # print(x.shape)
         x = self.conv64(x, add=u32)
         # print(x.shape)
-        x = self.final_scale(x, output_size=[orig.shape[2] * 2, orig.shape[3] * 2])
+        x = self.conv32(x, add=orig)
+        # x = self.final_scale(x, output_size=[orig.shape[2], orig.shape[3]])
 
         return x
 
@@ -108,8 +110,10 @@ class KoalaNet(nn.Module):
         layers = [
             DownsampleBlock(),
             UpsampleBlock(),
-            nn.Conv2d(32, 3, kernel_size=3, stride=1, padding=1),
-            # nn.PixelShuffle(2)
+            nn.Conv2d(32 * 2, 32, kernel_size=3, stride=1, padding=1),
+            nn.LeakyReLU(),
+            nn.Conv2d(32, 12, kernel_size=3, stride=1, padding=1),
+            nn.PixelShuffle(2)
         ]
 
         self.net = nn.Sequential(*layers)
