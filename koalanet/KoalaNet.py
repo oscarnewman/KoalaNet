@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     train_dataset = RawImageDataset(manifest_csv=os.path.join(args.trainwith, 'manifest.csv'),
                                     root_dir=args.trainwith,
-                                    crop=None
+                                    crop=512
                                     )
     train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
 
