@@ -58,7 +58,7 @@ if __name__ == '__main__':
                                    root_dir=args.testwith,
                                    crop=None
                                    )
-    test_data_loader = data.DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
+    test_data_loader = data.DataLoader(test_dataset, batch_size=1, shuffle=True)
 
     # instantiate network (which has been imported from *networks.py*)
     net = KoalaNet()
@@ -150,7 +150,7 @@ if __name__ == '__main__':
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
                 process_time / (process_time + prepare_time), loss, epoch, args.epochs))
 
-            if i % 1 == 0:
+            if i % 10 == 0:
                 utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
                 utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
                 utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
@@ -172,6 +172,15 @@ if __name__ == '__main__':
                         total=len(test_data_loader))
             pbar.set_description("Saving test outputs")
             for i, data in pbar:
-                output = net(data['dark'])
-                im = transforms.ToPILImage()(output[0])
-                im.save(f'out/test/test_{epoch}_{i}.png')
+                light_img = data['light']
+                dark_img = data['dark']
+                dark_rgb = data['dark_rgb']
+                if use_cuda:
+                    light_img = light_img.cuda()
+                    dark_img = dark_img.cuda()
+                    dark_rgb = dark_rgb.cuda()
+
+                output = net(dark_img)
+                utils.save_image(light_img, f'out/test/test_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
+                utils.save_image(dark_rgb, f'out/test/test_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
+                utils.save_image(output, f'out/test/test_{epoch}_{i}.png', normalize=True, scale_each=True)
