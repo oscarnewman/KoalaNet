@@ -63,7 +63,6 @@ class RawImageDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-
         dark_fname = self.manifest.iloc[idx, 0]
         light_fname = self.manifest.iloc[idx, 1]
 
@@ -84,7 +83,12 @@ class RawImageDataset(Dataset):
             light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
             dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
 
+            self.bayer_dark[dark_fname] = dark_bayer
+            self.rgb_dark[dark_fname] = dark_rgb
+            self.rgb_light[light_fname] = light_rgb
+
         ratio = get_exposure_ratio(dark_fname, light_fname)
+
         if self.crop:
             x0, x1, y0, y1 = get_crop(dark_bayer.shape[0], dark_bayer.shape[1], self.crop)
 
@@ -97,10 +101,6 @@ class RawImageDataset(Dataset):
 
         # print(dark_img.shape)
         # print(light_img.shape)
-
-        self.bayer_dark[dark_fname] = dark_img
-        self.rgb_dark[dark_fname] = dark_rgb
-        self.rgb_light[light_fname] = light_rgb
 
         sample = {'dark': dark_img, 'light': light_img,
                   'dark_rgb': dark_rgb}
