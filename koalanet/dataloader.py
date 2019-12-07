@@ -68,24 +68,23 @@ class RawImageDataset(Dataset):
         light_fname = self.manifest.iloc[idx, 1]
 
         if dark_fname in self.bayer_dark and dark_fname in self.rgb_dark and light_fname in self.rgb_light:
-            return {
-                'dark': self.bayer_dark[dark_fname],
-                'light': self.rgb_light[light_fname],
-                'dark_rgb': self.rgb_dark[dark_fname]
-            }
+            dark_bayer = self.bayer_dark[dark_fname]
+            light_rgb = self.rgb_light[light_fname]
+            dark_rgb = self.rgb_dark[dark_fname]
+
+        else:
+
+            dark_raw_name = os.path.join(self.root_dir, dark_fname)
+            light_raw_name = os.path.join(self.root_dir, light_fname)
+
+            dark_raw = rawpy.imread(dark_raw_name)
+            light_raw = rawpy.imread(light_raw_name)
+
+            dark_bayer = dark_raw.raw_image_visible.astype(np.float32)
+            light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
+            dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
 
         ratio = get_exposure_ratio(dark_fname, light_fname)
-
-        dark_raw_name = os.path.join(self.root_dir, dark_fname)
-        light_raw_name = os.path.join(self.root_dir, light_fname)
-
-        dark_raw = rawpy.imread(dark_raw_name)
-        light_raw = rawpy.imread(light_raw_name)
-
-        dark_bayer = dark_raw.raw_image_visible.astype(np.float32)
-        light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
-        dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
-
         if self.crop:
             x0, x1, y0, y1 = get_crop(dark_bayer.shape[0], dark_bayer.shape[1], self.crop)
 

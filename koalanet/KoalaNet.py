@@ -145,7 +145,7 @@ if __name__ == '__main__':
                 process_time / (process_time + prepare_time), loss, epoch, args.epochs))
 
             if i % 10 == 0:
-                utils.save_image(output, f'out/train/train_{epoch}_{i}.png')
+                utils.save_image(output, f'out/train/train_{epoch}_{i}.png', scale_each=True)
 
             # im: Image = transforms.ToPILImage()(output[0].cpu())
             # im.save(f'out/train/train_{epoch}_{i}.png')
