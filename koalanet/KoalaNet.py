@@ -101,6 +101,8 @@ if __name__ == '__main__':
                     total=len(train_data_loader))
         start_time = time.time()
 
+        avg_loss = 0
+
         # for loop going through dataset
         for i, data in pbar:
             # data preparation
@@ -136,6 +138,7 @@ if __name__ == '__main__':
             # print(output.shape)
             # print(light_img.shape)
             loss = criterion_L2(light_img.float(), output.float())
+            avg_loss += loss
 
             loss.backward()
             optimizer.step()
@@ -147,7 +150,7 @@ if __name__ == '__main__':
             # compute computation time and *compute_efficiency*
             process_time = start_time - time.time() - prepare_time
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
-                process_time / (process_time + prepare_time), loss, epoch, args.epochs))
+                process_time / (process_time + prepare_time), (avg_loss / i), epoch, args.epochs))
 
             if i % 10 == 0:
                 utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
