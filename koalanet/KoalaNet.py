@@ -172,9 +172,9 @@ if __name__ == '__main__':
                         total=len(test_data_loader))
             pbar.set_description("Saving test outputs")
             for i, data in pbar:
-                light_img = data['light']
+                light_img = data['light'].float()
                 dark_img = data['dark']
-                dark_rgb = data['dark_rgb']
+                dark_rgb = data['dark_rgb'].float()
                 if use_cuda:
                     light_img = light_img.cuda()
                     dark_img = dark_img.cuda()
