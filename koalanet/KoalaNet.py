@@ -168,7 +168,7 @@ if __name__ == '__main__':
             'epoch': epoch,
             'net': net.state_dict(),
             'optim': optimizer.state_dict(),
-        }, f'checkpoint/saved_epoch_{epoch}.ckpt')
+        }, f'checkpoint/saved_latest.ckpt')
         # maybe do a test pass every x epochs
         x = -1
         if epoch % x == x - 1:
