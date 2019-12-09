@@ -70,24 +70,24 @@ class RawImageDataset(Dataset):
         dark_fname = self.manifest.iloc[idx, 0]
         light_fname = self.manifest.iloc[idx, 1]
 
-        if dark_fname in RawImageDataset.bayer_dark and light_fname in RawImageDataset.rgb_light:
+        if dark_fname in RawImageDataset.bayer_dark:
             dark_bayer = RawImageDataset.bayer_dark[dark_fname]
-            light_rgb = RawImageDataset.rgb_light[light_fname]
-            print(f"CACHE HIT SUCCESS: {idx}")
+            # light_rgb = RawImageDataset.rgb_light[light_fname]
+            print(f"CACHE HIT SUCCESS: {dark_fname}")
             # dark_rgb = self.rgb_dark[dark_fname]
-
         else:
-            # print(f"CACHE HIT FAIL: {idx}")
             dark_raw_name = os.path.join(self.root_dir, dark_fname)
-            light_raw_name = os.path.join(self.root_dir, light_fname)
-
-            with rawpy.imread(dark_raw_name) as dark_raw, rawpy.imread(light_raw_name) as light_raw:
+            with rawpy.imread(dark_raw_name) as dark_raw:
                 dark_bayer = dark_raw.raw_image_visible.astype(np.float32)
-                light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
-                # dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
-
             RawImageDataset.bayer_dark[dark_fname] = dark_bayer
-            # self.rgb_dark[dark_fname] = dark_rgb
+
+        if light_fname in RawImageDataset.rgb_light:
+            light_rgb = RawImageDataset.rgb_light[light_fname]
+            print(f"CACHE HIT SUCCESS: {light_fname}")
+        else:
+            light_raw_name = os.path.join(self.root_dir, light_fname)
+            with rawpy.imread(light_raw_name) as light_raw:
+                light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
             RawImageDataset.rgb_light[light_fname] = light_rgb
 
         ratio = get_exposure_ratio(dark_fname, light_fname)
