@@ -53,7 +53,7 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=16,
+    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=8,
                                         pin_memory=True)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
@@ -157,10 +157,10 @@ if __name__ == '__main__':
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
                 sum(celist) / len(celist), (avg_loss / i), epoch, args.epochs))
 
-            # if i % 10 == 0:
-            #     utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
-            #     # utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
-            #     utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
+            if i % 10 == 0:
+                utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
+                # utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
+                utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
 
             # im: Image = transforms.ToPILImage()(output[0].cpu())
             # im.save(f'out/train/train_{epoch}_{i}_S.png')
