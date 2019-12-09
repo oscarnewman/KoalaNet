@@ -63,17 +63,18 @@ class RawImageDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
+        print(f"Loading Image {idx}")
         dark_fname = self.manifest.iloc[idx, 0]
         light_fname = self.manifest.iloc[idx, 1]
 
         if dark_fname in self.bayer_dark and light_fname in self.rgb_light:
             dark_bayer = self.bayer_dark[dark_fname]
             light_rgb = self.rgb_light[light_fname]
-            print("CACHE HIT SUCCESS")
+            print(f"CACHE HIT SUCCESS: {idx}")
             # dark_rgb = self.rgb_dark[dark_fname]
 
         else:
-
+            print(f"CACHE HIT FAIL: {idx}")
             dark_raw_name = os.path.join(self.root_dir, dark_fname)
             light_raw_name = os.path.join(self.root_dir, light_fname)
 
@@ -109,5 +110,6 @@ class RawImageDataset(Dataset):
             sample = self.transform(sample)
 
         # gc.collect()
+        print(f"Loaded {idx}")
 
         return sample
