@@ -74,7 +74,7 @@ class RawImageDataset(Dataset):
             # dark_rgb = self.rgb_dark[dark_fname]
 
         else:
-            print(f"CACHE HIT FAIL: {idx}")
+            # print(f"CACHE HIT FAIL: {idx}")
             dark_raw_name = os.path.join(self.root_dir, dark_fname)
             light_raw_name = os.path.join(self.root_dir, light_fname)
 
@@ -110,6 +110,6 @@ class RawImageDataset(Dataset):
             sample = self.transform(sample)
 
         # gc.collect()
-        print(f"Loaded {idx}")
+        # print(f"Loaded {idx}")
 
         return sample
