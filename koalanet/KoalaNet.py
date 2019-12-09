@@ -53,7 +53,7 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
+    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=16)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
@@ -177,7 +177,7 @@ if __name__ == '__main__':
             'optim': optimizer.state_dict(),
         }, f'checkpoint/saved_latest.ckpt')
         # maybe do a test pass every x epochs
-        x = 1
+        x = -1
         if epoch % x == x - 1:
             torch.cuda.empty_cache()
             # bring models to evaluation mode
