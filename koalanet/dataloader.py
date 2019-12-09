@@ -48,6 +48,9 @@ def get_crop(w, h, size):
 class RawImageDataset(Dataset):
     """Raw Images Dataset"""
 
+    rgb_light = {}
+    bayer_dark = {}
+
     def __init__(self, manifest_csv: str, root_dir: str, transform=None, crop=512):
         self.manifest: pd.DataFrame = pd.read_csv(manifest_csv)
         self.root_dir = root_dir
@@ -67,9 +70,9 @@ class RawImageDataset(Dataset):
         dark_fname = self.manifest.iloc[idx, 0]
         light_fname = self.manifest.iloc[idx, 1]
 
-        if dark_fname in self.bayer_dark and light_fname in self.rgb_light:
-            dark_bayer = self.bayer_dark[dark_fname]
-            light_rgb = self.rgb_light[light_fname]
+        if dark_fname in RawImageDataset.bayer_dark and light_fname in RawImageDataset.rgb_light:
+            dark_bayer = RawImageDataset.bayer_dark[dark_fname]
+            light_rgb = RawImageDataset.rgb_light[light_fname]
             print(f"CACHE HIT SUCCESS: {idx}")
             # dark_rgb = self.rgb_dark[dark_fname]
 
@@ -83,9 +86,9 @@ class RawImageDataset(Dataset):
                 light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
                 # dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
 
-            self.bayer_dark[dark_fname] = dark_bayer
+            RawImageDataset.bayer_dark[dark_fname] = dark_bayer
             # self.rgb_dark[dark_fname] = dark_rgb
-            self.rgb_light[light_fname] = light_rgb
+            RawImageDataset.rgb_light[light_fname] = light_rgb
 
         ratio = get_exposure_ratio(dark_fname, light_fname)
 
