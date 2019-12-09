@@ -53,7 +53,7 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=8)
+    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
