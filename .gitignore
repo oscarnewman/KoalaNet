@@ -1,6 +1,8 @@
 .DS_STORE
 .idea
 
+checkpoint/
+
 out/
 
 # Byte-compiled / optimized / DLL files
