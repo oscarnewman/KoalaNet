@@ -53,7 +53,8 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=16)
+    small_train = torch.utils.data.random_split(train_dataset, [100, len(train_dataset) - 100])
+    train_data_loader = data.DataLoader(small_train, batch_size=args.batch, shuffle=True, num_workers=16)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
