@@ -1,3 +1,4 @@
+import gc
 import math
 import os
 
@@ -76,12 +77,10 @@ class RawImageDataset(Dataset):
             dark_raw_name = os.path.join(self.root_dir, dark_fname)
             light_raw_name = os.path.join(self.root_dir, light_fname)
 
-            dark_raw = rawpy.imread(dark_raw_name)
-            light_raw = rawpy.imread(light_raw_name)
-
-            dark_bayer = dark_raw.raw_image_visible.astype(np.float32)
-            light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
-            dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
+            with rawpy.imread(dark_raw_name) as dark_raw, rawpy.imread(light_raw_name) as light_raw:
+                dark_bayer = dark_raw.raw_image_visible.astype(np.float32)
+                light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
+                dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
 
             self.bayer_dark[dark_fname] = dark_bayer
             self.rgb_dark[dark_fname] = dark_rgb
@@ -107,5 +106,7 @@ class RawImageDataset(Dataset):
 
         if self.transform:
             sample = self.transform(sample)
+
+        gc.collect()
 
         return sample
