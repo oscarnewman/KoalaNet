@@ -177,7 +177,7 @@ if __name__ == '__main__':
             reference_grid = utils.make_grid(light_img, normalize=True, scale_each=True)
 
             if i == len(train_data_loader) - 1:
-                tb_step = i + num_iters * epoch
+                tb_step = epoch
                 writer.add_image('Output', output_grid, tb_step)
                 writer.add_image('Reference', reference_grid, tb_step)
                 writer.add_scalar('loss', avg_loss / (i + 1), tb_step)
