@@ -53,7 +53,8 @@ if __name__ == '__main__':
                                     root_dir=args.trainwith,
                                     crop=512
                                     )
-    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=4)
+    train_data_loader = data.DataLoader(train_dataset, batch_size=args.batch, shuffle=True, num_workers=16)
+    train_data_preloader = data.DataLoader(train_dataset, batch_size=1, num_workers=0)
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
@@ -91,13 +92,10 @@ if __name__ == '__main__':
     # writer = SummaryWriter(...)
 
     # Load our data first
-    train_data_loader.num_workers = 0
-    pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=8)),
-                total=len(train_data_loader))
+    pbar = tqdm(enumerate(BackgroundGenerator(train_data_preloader, max_prefetch=8)),
+                total=len(train_data_preloader))
     for i, data in pbar:
         pass
-
-    train_data_loader.num_workers = 16
 
     cetotal = 0
     cenum = 0
