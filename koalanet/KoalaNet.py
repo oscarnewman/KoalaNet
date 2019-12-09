@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
             if i % 10 == 0:
                 utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
-                utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
+                # utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
                 utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
 
             # im: Image = transforms.ToPILImage()(output[0].cpu())
