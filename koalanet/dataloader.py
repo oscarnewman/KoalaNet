@@ -1,4 +1,3 @@
-import gc
 import math
 import os
 
@@ -108,6 +107,6 @@ class RawImageDataset(Dataset):
         if self.transform:
             sample = self.transform(sample)
 
-        gc.collect()
+        # gc.collect()
 
         return sample
