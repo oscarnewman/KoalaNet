@@ -176,9 +176,10 @@ if __name__ == '__main__':
             reference_grid = utils.make_grid(light_img, normalize=True, scale_each=True)
 
             if i == len(train_data_loader) - 1:
-                writer.add_image('Output', output_grid, i * (epoch + 1))
-                writer.add_image('Reference', reference_grid, i * (epoch + 1))
-                writer.add_scalar('loss', avg_loss / (i + 1), i * (epoch + 1))
+                tb_step = i + n_iter * epoch
+                writer.add_image('Output', output_grid, tb_step)
+                writer.add_image('Reference', reference_grid, tb_step)
+                writer.add_scalar('loss', avg_loss / (i + 1), tb_step)
 
             #     writer.add_images('Ouptput', torch.cat((light_img, output), dim=2), epoch)
             # utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
