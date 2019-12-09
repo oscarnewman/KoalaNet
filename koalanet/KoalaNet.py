@@ -98,7 +98,7 @@ if __name__ == '__main__':
         net.train()
 
         # use prefetch_generator and tqdm for iterating through data
-        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader)),
+        pbar = tqdm(enumerate(train_data_loader),
                     total=len(train_data_loader))
         start_time = time.time()
 
