@@ -73,7 +73,7 @@ if __name__ == '__main__':
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         net = net.cuda()
-        print("USING CUDA")
+        print("Cuda is avaiable and being used\n")
 
     # create optimizers
     optimizer = torch.optim.Adam(net.parameters(), lr=args.lr)
@@ -92,6 +92,8 @@ if __name__ == '__main__':
     # writer = SummaryWriter(...)
 
     # Load our data first
+    print("Preloading data for efficient epochs")
+    print("====================================")
     pbar = tqdm(enumerate(BackgroundGenerator(train_data_preloader, max_prefetch=8)),
                 total=len(train_data_preloader))
     for i, data in pbar:
@@ -100,6 +102,8 @@ if __name__ == '__main__':
     cetotal = 0
     cenum = 0
 
+    print(f"\nBeginning Training for {args.epochs} epochs")
+    print("===============================================")
     # now we start the main loop
     n_iter = start_n_iter
     for epoch in range(start_epoch, args.epochs):
@@ -166,10 +170,10 @@ if __name__ == '__main__':
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
                 cetotal / cenum, (avg_loss / i), epoch, args.epochs))
 
-            # if i % 10 == 0:
-            #     utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
-            #     # utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
-            #     utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
+            if i == len(train_data_loader) - 1:
+                utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
+                # utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
+                utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
 
             # im: Image = transforms.ToPILImage()(output[0].cpu())
             # im.save(f'out/train/train_{epoch}_{i}_S.png')
@@ -184,7 +188,7 @@ if __name__ == '__main__':
             'optim': optimizer.state_dict(),
         }, f'checkpoint/saved_latest.ckpt')
         # maybe do a test pass every x epochs
-        x = -1
+        x = 1
         if epoch % x == x - 1:
             torch.cuda.empty_cache()
             # bring models to evaluation mode
