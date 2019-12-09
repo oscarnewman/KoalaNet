@@ -188,7 +188,7 @@ if __name__ == '__main__':
             'optim': optimizer.state_dict(),
         }, f'checkpoint/saved_latest.ckpt')
         # maybe do a test pass every x epochs
-        x = 1
+        x = 10
         if epoch % x == x - 1:
             torch.cuda.empty_cache()
             # bring models to evaluation mode
