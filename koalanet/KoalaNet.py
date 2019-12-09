@@ -151,9 +151,10 @@ if __name__ == '__main__':
             #         ...
             #
             # compute computation time and *compute_efficiency*
+
+            process_time = start_time - time.time() - prepare_time
             ce = process_time / (process_time + prepare_time)
             celist += ce
-            process_time = start_time - time.time() - prepare_time
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
                 sum(celist) / len(celist), (avg_loss / i), epoch, args.epochs))
 
