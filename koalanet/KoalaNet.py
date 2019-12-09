@@ -110,6 +110,7 @@ if __name__ == '__main__':
     for epoch in range(start_epoch, args.epochs):
         # set models to train mode
         net.train()
+        num_iters = len(train_data_loader)
 
         # use prefetch_generator and tqdm for iterating through data
         pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=8)),
@@ -176,7 +177,7 @@ if __name__ == '__main__':
             reference_grid = utils.make_grid(light_img, normalize=True, scale_each=True)
 
             if i == len(train_data_loader) - 1:
-                tb_step = i + n_iter * epoch
+                tb_step = i + num_iters * epoch
                 writer.add_image('Output', output_grid, tb_step)
                 writer.add_image('Reference', reference_grid, tb_step)
                 writer.add_scalar('loss', avg_loss / (i + 1), tb_step)
