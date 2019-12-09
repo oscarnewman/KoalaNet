@@ -69,6 +69,7 @@ class RawImageDataset(Dataset):
         if dark_fname in self.bayer_dark and light_fname in self.rgb_light:
             dark_bayer = self.bayer_dark[dark_fname]
             light_rgb = self.rgb_light[light_fname]
+            print("CACHE HIT SUCCESS")
             # dark_rgb = self.rgb_dark[dark_fname]
 
         else:
