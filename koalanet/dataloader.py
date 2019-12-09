@@ -89,7 +89,8 @@ class RawImageDataset(Dataset):
         else:
             light_raw_name = os.path.join(self.root_dir, light_fname)
             with rawpy.imread(light_raw_name) as light_raw:
-                light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
+                light_rgb = torch.from_numpy(
+                    light_raw.postprocess(use_camera_wb=True, half_size=False, no_auto_bright=True)).permute(2, 0, 1)
             RawImageDataset.rgb_light[light_fname] = light_rgb
 
         ratio = get_exposure_ratio(dark_fname, light_fname)
