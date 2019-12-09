@@ -108,7 +108,7 @@ if __name__ == '__main__':
             # data preparation
             light_img = data['light']
             dark_img = data['dark']
-            dark_rgb = data['dark_rgb']
+            # dark_rgb = data['dark_rgb']
             if use_cuda:
                 light_img = light_img.cuda()
                 dark_img = dark_img.cuda()
