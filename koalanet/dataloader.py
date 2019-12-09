@@ -93,7 +93,7 @@ class RawImageDataset(Dataset):
 
             dark_bayer = dark_bayer[x0:x1, y0:y1]
             light_rgb = light_rgb[:, x0:x1, y0:y1]
-            dark_rgb = dark_rgb[:, x0:x1, y0:y1]
+            # dark_rgb = dark_rgb[:, x0:x1, y0:y1]
 
         dark_img = unpack_raw(dark_bayer) * ratio
         light_img = light_rgb
@@ -102,7 +102,8 @@ class RawImageDataset(Dataset):
         # print(light_img.shape)
 
         sample = {'dark': dark_img, 'light': light_img,
-                  'dark_rgb': dark_rgb}
+                  # 'dark_rgb': dark_rgb
+                  }
 
         if self.transform:
             sample = self.transform(sample)

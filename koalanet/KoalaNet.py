@@ -112,10 +112,10 @@ if __name__ == '__main__':
             if use_cuda:
                 light_img = light_img.cuda()
                 dark_img = dark_img.cuda()
-                dark_rgb = dark_rgb.cuda()
+                # dark_rgb = dark_rgb.cuda()
 
             light_img = light_img.float()
-            dark_rgb = dark_rgb.float()
+            # dark_rgb = dark_rgb.float()
 
             # It's very good practice to keep track of preparation time and
             # computation time using tqdm to find any issues in your dataloader
