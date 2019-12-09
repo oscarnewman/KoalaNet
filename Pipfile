@@ -19,6 +19,8 @@ pillow = "*"
 rawpy = "*"
 pandas = "*"
 prefetch-generator = "*"
+crc32c = "*"
+tensorflow = "*"
 
 [requires]
 python_version = "3.6"

@@ -6,6 +6,7 @@ import time
 import numpy as np
 import torch
 from prefetch_generator import BackgroundGenerator
+from tensorboardX import SummaryWriter
 from torch.utils import data
 from torchvision import transforms, utils
 from tqdm import tqdm
@@ -89,7 +90,7 @@ if __name__ == '__main__':
         print("last checkpoint restored")
 
     # typically we use tensorboardX to keep track of experiments
-    # writer = SummaryWriter(...)
+    writer = SummaryWriter()
 
     # Load our data first
     print("Preloading data for efficient epochs")
@@ -161,7 +162,9 @@ if __name__ == '__main__':
             #         writer.add_scalar(..., n_iter)
             #         ...
             #
+            # writer.add_images('Reference', light_img, n_iter)
             # compute computation time and *compute_efficiency*
+            writer.add_scalar('loss', avg_loss / (i + 1), i * (epoch + 1))
 
             process_time = start_time - time.time() - prepare_time
             ce = process_time / (process_time + prepare_time)
@@ -170,10 +173,17 @@ if __name__ == '__main__':
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
                 cetotal / cenum, (avg_loss / (i + 1)), epoch, args.epochs))
 
-            if i == len(train_data_loader) - 1:
-                utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
-                # utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
-                utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
+            output_grid = utils.make_grid(output, normalize=True, scale_each=True)
+            reference_grid = utils.make_grid(light_img, normalize=True, scale_each=True)
+            writer.add_image('Output', output_grid, i * (epoch + 1))
+            writer.add_image('Reference', reference_grid, i * (epoch + 1))
+
+            # if i == len(train_data_loader) - 1:
+
+            #     writer.add_images('Ouptput', torch.cat((light_img, output), dim=2), epoch)
+            # utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
+            # utils.save_image(dark_rgb, f'out/train/train_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
+            # utils.save_image(output, f'out/train/train_{epoch}_{i}.png', normalize=True, scale_each=True)
 
             # im: Image = transforms.ToPILImage()(output[0].cpu())
             # im.save(f'out/train/train_{epoch}_{i}_S.png')
