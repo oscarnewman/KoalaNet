@@ -57,9 +57,9 @@ if __name__ == '__main__':
 
     test_dataset = RawImageDataset(manifest_csv=os.path.join(args.testwith, 'manifest.csv'),
                                    root_dir=args.testwith,
-                                   crop=512
+                                   crop=None
                                    )
-    test_data_loader = data.DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
+    test_data_loader = data.DataLoader(test_dataset, batch_size=1, shuffle=True)
 
     # instantiate network (which has been imported from *networks.py*)
     net = KoalaNet()
@@ -100,7 +100,7 @@ if __name__ == '__main__':
         net.train()
 
         # use prefetch_generator and tqdm for iterating through data
-        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader)),
+        pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=8)),
                     total=len(train_data_loader))
         start_time = time.time()
 
@@ -177,7 +177,7 @@ if __name__ == '__main__':
             'optim': optimizer.state_dict(),
         }, f'checkpoint/saved_latest.ckpt')
         # maybe do a test pass every x epochs
-        x = -1
+        x = 1
         if epoch % x == x - 1:
             # bring models to evaluation mode
             net.eval()
@@ -186,15 +186,17 @@ if __name__ == '__main__':
                         total=len(test_data_loader))
             pbar.set_description("Saving test outputs")
             for i, data in pbar:
+                if i == 10:
+                    break
                 light_img = data['light'].float()
                 dark_img = data['dark']
-                dark_rgb = data['dark_rgb'].float()
+                # dark_rgb = data['dark_rgb'].float()
                 if use_cuda:
                     light_img = light_img.cuda()
                     dark_img = dark_img.cuda()
-                    dark_rgb = dark_rgb.cuda()
+                    # dark_rgb = dark_rgb.cuda()
 
                 output = net(dark_img)
                 utils.save_image(light_img, f'out/test/test_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
-                utils.save_image(dark_rgb, f'out/test/test_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
+                # utils.save_image(dark_rgb, f'out/test/test_{epoch}_{i}_orig.png', normalize=True, scale_each=True)
                 utils.save_image(output, f'out/test/test_{epoch}_{i}.png', normalize=True, scale_each=True)
