@@ -179,11 +179,12 @@ if __name__ == '__main__':
         # maybe do a test pass every x epochs
         x = 1
         if epoch % x == x - 1:
+            torch.cuda.empty_cache()
             # bring models to evaluation mode
             net.eval()
             # do some tests
             pbar = tqdm(enumerate(BackgroundGenerator(test_data_loader)),
-                        total=len(test_data_loader))
+                        total=10)
             pbar.set_description("Saving test outputs")
             for i, data in pbar:
                 if i == 10:
