@@ -90,6 +90,15 @@ if __name__ == '__main__':
     # typically we use tensorboardX to keep track of experiments
     # writer = SummaryWriter(...)
 
+    # Load our data first
+    train_data_loader.num_workers = 0
+    pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=8)),
+                total=len(train_data_loader))
+    for i, data in pbar:
+        pass
+
+    train_data_loader.num_workers = 16
+
     cetotal = 0
     cenum = 0
 
