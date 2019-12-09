@@ -67,10 +67,10 @@ class RawImageDataset(Dataset):
         dark_fname = self.manifest.iloc[idx, 0]
         light_fname = self.manifest.iloc[idx, 1]
 
-        if dark_fname in self.bayer_dark and dark_fname in self.rgb_dark and light_fname in self.rgb_light:
+        if dark_fname in self.bayer_dark and light_fname in self.rgb_light:
             dark_bayer = self.bayer_dark[dark_fname]
             light_rgb = self.rgb_light[light_fname]
-            dark_rgb = self.rgb_dark[dark_fname]
+            # dark_rgb = self.rgb_dark[dark_fname]
 
         else:
 
@@ -80,10 +80,10 @@ class RawImageDataset(Dataset):
             with rawpy.imread(dark_raw_name) as dark_raw, rawpy.imread(light_raw_name) as light_raw:
                 dark_bayer = dark_raw.raw_image_visible.astype(np.float32)
                 light_rgb = torch.from_numpy(light_raw.postprocess()).permute(2, 0, 1)
-                dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
+                # dark_rgb = torch.from_numpy(dark_raw.postprocess()).permute(2, 0, 1)
 
             self.bayer_dark[dark_fname] = dark_bayer
-            self.rgb_dark[dark_fname] = dark_rgb
+            # self.rgb_dark[dark_fname] = dark_rgb
             self.rgb_light[light_fname] = light_rgb
 
         ratio = get_exposure_ratio(dark_fname, light_fname)
