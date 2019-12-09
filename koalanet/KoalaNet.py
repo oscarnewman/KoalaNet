@@ -91,8 +91,7 @@ if __name__ == '__main__':
     # typically we use tensorboardX to keep track of experiments
     # writer = SummaryWriter(...)
 
-    total_process_time = 0
-    total_prepare_time = 0
+    celist = []
 
     # now we start the main loop
     n_iter = start_n_iter
@@ -124,7 +123,6 @@ if __name__ == '__main__':
             # It's very good practice to keep track of preparation time and
             # computation time using tqdm to find any issues in your dataloader
             prepare_time = start_time - time.time()
-            total_prepare_time += prepare_time
 
             # forward and backward pass
             optimizer.zero_grad()
@@ -153,10 +151,11 @@ if __name__ == '__main__':
             #         ...
             #
             # compute computation time and *compute_efficiency*
+            ce = process_time / (process_time + prepare_time)
+            celist += ce
             process_time = start_time - time.time() - prepare_time
-            total_process_time += process_time
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
-                total_process_time / (total_process_time + total_prepare_time), (avg_loss / i), epoch, args.epochs))
+                sum(celist) / len(celist), (avg_loss / i), epoch, args.epochs))
 
             # if i % 10 == 0:
             #     utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
