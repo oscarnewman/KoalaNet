@@ -92,11 +92,13 @@ if __name__ == '__main__':
 
     # Load our data first
     train_data_loader.num_workers = 0
+    train_data_loader.batch_size = 1
     pbar = tqdm(enumerate(BackgroundGenerator(train_data_loader, max_prefetch=8)),
                 total=len(train_data_loader))
     for i, data in pbar:
         pass
 
+    train_data_loader.batch_size = args.batch
     train_data_loader.num_workers = 16
 
     cetotal = 0
