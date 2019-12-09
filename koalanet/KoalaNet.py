@@ -168,7 +168,7 @@ if __name__ == '__main__':
             cetotal += ce
             cenum += 1
             pbar.set_description("C/E: {:.2f}, Loss: {:03.3f}, Epoch: {}/{}:".format(
-                cetotal / cenum, (avg_loss / i), epoch, args.epochs))
+                cetotal / cenum, (avg_loss / (i + 1)), epoch, args.epochs))
 
             if i == len(train_data_loader) - 1:
                 utils.save_image(light_img, f'out/train/train_{epoch}_{i}_ref.png', normalize=True, scale_each=True)
